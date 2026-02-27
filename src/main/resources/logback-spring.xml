@@ -1,0 +1,77 @@
+<configuration>
+
+<!--    spring-boot-starter به طور پیش‌فرض Logback + SLF4J را می‌آورد.-->
+<!--    spring.profiles.active تعیین می‌کند کدام <springProfile> اجرا شود.-->
+
+
+<property name="SERVICE_NAME" value="notification-service"/>
+
+    <!-- ========================= -->
+    <!-- DEV PROFILE (TEXT LOGS)  -->
+    <!-- ========================= -->
+<springProfile name="dev">
+    <property name="PATTERN"
+    value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} correlationId=%X{correlationId} eventId=%X{eventId} orderId=%X{orderId} topic=%X{topic} partition=%X{partition} offset=%X{offset} - %msg%n"/>
+
+    <appender name="TEXT_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                ${PATTERN}
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- کاهش نویز کتابخانه‌ها -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.apache.kafka" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
+
+    <root level="INFO">
+        <appender-ref ref="TEXT_CONSOLE"/>
+    </root>
+
+</springProfile>
+
+    <!-- ========================= -->
+    <!-- PROD PROFILE (JSON LOGS) -->
+    <!-- ========================= -->
+
+<springProfile name="prod">
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <!-- time, level, logger, thread -->
+                <timestamp>
+                    <timeZone>UTC</timeZone>
+<!--                    UTC مهم است چون:-->
+
+<!--                    در سیستم‌های distributed همه باید یک timezone داشته باشند.-->
+                </timestamp>
+                <logLevel/>
+                <threadName/>
+                <loggerName/>
+                <!-- message + stacktrace -->
+                <message/>
+                <stackTrace/>
+                <!-- MDC fields (correlationId, eventId, orderId, topic...) -->
+                <mdc/>
+                <!-- add constant fields -->
+                <globalCustomFields>
+                    {"service":"${SERVICE_NAME}"}
+                </globalCustomFields>
+            </providers>
+        </encoder>
+    </appender>
+
+    <!-- کاهش نویز -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.apache.kafka" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
+
+    <root level="INFO">
+        <appender-ref ref="JSON_CONSOLE"/>
+    </root>
+
+</springProfile>
+
+</configuration>

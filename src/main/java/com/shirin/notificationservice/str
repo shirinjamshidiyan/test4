@@ -1,0 +1,171 @@
+................................................
+
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: emaildb
+      POSTGRES_USER: email
+      POSTGRES_PASSWORD: email
+    ports:
+      - "5432:5432"
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on: [zookeeper]
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+
+......................................................
+Topic: order-confirmed.v1:
+{
+  "eventId": "8de57fc1-9850-49a9-9a1b-6c5853a874f9",
+  "orderId": "a2a1c17b-7aa9-49ce-9e8d-2b7fd1c7f3d5",
+  "occurredAt": "2026-02-14T09:10:00Z",
+  "version": 1,
+  "customerEmail": "customer@example.com",
+  "customerName": "John Doe",
+  "total": { "amount": 129.99, "currency": "DKK" },
+  "items": [
+    {
+      "sku": "SKU-001",
+      "name": "Wireless Mouse",
+      "quantity": 1,
+      "unitPrice": { "amount": 99.99, "currency": "DKK" },
+      "lineTotal": { "amount": 99.99, "currency": "DKK" }
+    },
+    {
+      "sku": "SKU-002",
+      "name": "USB-C Cable",
+      "quantity": 1,
+      "unitPrice": { "amount": 30.00, "currency": "DKK" },
+      "lineTotal": { "amount": 30.00, "currency": "DKK" }
+    }
+  ],
+  "billingAddress": "ACME ApS\nMain Street 1\nCopenhagen\nDenmark",
+  "shippingAddress": "John Doe\nSide Street 2\nCopenhagen\nDenmark"
+}
+
+و تست پیام نافص که مستقیم بره به DLQ
+..........................
+راه‌حل استاندارد
+
+classify exception ها:
+
+ValidationException → non-retryable
+
+TransientException (DB timeout, network) → retryable
+
+برای non-retryable:
+
+publish به DLQ (Dead Letter Topic)
+
+commit offset
+
+ادامه بده
+
+برای retryable:
+
+چند بار retry کن
+
+اگر باز fail شد → DLQ
+.......................................
+
+DefaultErrorHandler + DLQ — کنترل خطا در Spring Kafka:::::
+DefaultErrorHandler + DLQ → جلوگیری از قفل شدن سیستم هنگام خطا
+
+
+
+@Bean
+public DefaultErrorHandler errorHandler(KafkaTemplate<Object, Object> template) {
+
+    DeadLetterPublishingRecoverer recoverer =
+        new DeadLetterPublishingRecoverer(template,
+            (record, ex) -> new TopicPartition(
+                record.topic() + ".dlq",
+                record.partition()
+            )
+        );
+
+    ExponentialBackOffWithMaxRetries backoff =
+        new ExponentialBackOffWithMaxRetries(3);
+
+    backoff.setInitialInterval(1000);
+    backoff.setMultiplier(2.0);
+    backoff.setMaxInterval(10000);
+
+    DefaultErrorHandler handler =
+        new DefaultErrorHandler(recoverer, backoff);
+
+    handler.addNotRetryableExceptions(IllegalArgumentException.class);
+
+    return handler;
+}
+
+رفتار این تنظیم:
+
+پیام مصرف می‌شود
+
+Exception رخ می‌دهد
+
+تا 3 بار retry با backoff
+
+اگر باز هم fail شود:
+
+پیام به .dlq ارسال می‌شود
+
+offset commit می‌شود
+
+consumer ادامه می‌دهد
+........................................
+
+acks → سطح durability در write
+...............................
+
+تصویر کلی صنعتی
+
+برای یک Email Service واقعی:
+
+acks=all
+
+replication.factor ≥ 3
+
+enable.idempotence=true
+
+manual ack
+
+inbox table برای dedupe
+
+retry + DLQ
+
+monitoring lag
+
+alert روی DLQ spike
+
+
+...................
+
+Replica یعنی:
+یک کپی از یک partition خاص روی یک broker دیگر
+

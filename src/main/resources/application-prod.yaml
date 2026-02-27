@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://prod-db:5432/emaildb
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  mail:
+    host: smtp.sendgrid.net
+    port: 587
+    username: apikey
+    password: ${SMTP_API_KEY}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+app:
+  kafka:
+    bootstrap-servers: kafka:9092
+    group-id: notification-service
+    topic: order-confirmed.v1

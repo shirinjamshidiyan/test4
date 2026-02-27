@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Receipt</title>
+</head>
+<body>
+<h2>Receipt</h2>
+<p>Hi <span th:text="${e.customerName()}">Customer</span>,</p>
+<p>Your order <strong th:text="${e.orderId()}">ORDER</strong> is confirmed.</p>
+<p>Confirmed at <span th:text="${e.occurredAt()}">TIME</span>.</p>
+<h3>Items</h3>
+<table border="1" cellpadding="6" cellspacing="0">
+    <thead>
+    <tr>
+        <th>SKU</th>
+        <th>Name</th>
+        <th>Qty</th>
+        <th>Unit</th>
+        <th>Total</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="it : ${e.items()}">
+        <td th:text="${it.sku()}">sku</td>
+        <td th:text="${it.name()}">name</td>
+        <td th:text="${it.quantity()}">1</td>
+        <td th:text="${it.unitPrice()} + ' ' + ${e.currency()}">0</td>
+        <td th:text="${it.lineTotal()} + ' ' + ${e.currency()}">0</td>
+    </tr>
+    </tbody>
+</table>
+
+<h3>Total</h3>
+<p><strong th:text="${e.totalAmount()} + ' ' + ${e.currency()}">0</strong></p>
+
+<h3>Billing</h3>
+<pre th:text="${e.billingAddress()}">billing</pre>
+
+<h3>Shipping</h3>
+<pre th:text="${e.shippingAddress()}">shipping</pre>
+
+<p>Thank you.</p>
+</body>
+</html>
+
+<!--//            private final DateTimeFormatter dtf =-->
+<!--//                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.of("Europe/Copenhagen"));-->
+
+<!--//            ctx.setVariable("occurredAt", dtf.format(event.occurredAt()));-->

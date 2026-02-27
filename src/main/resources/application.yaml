@@ -1,0 +1,27 @@
+server:
+  port: 8082
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate  #Hibernate فقط چک می‌کند schema مطابق entityها هست یا نه
+  flyway:
+    enabled: true  #ساخت و تغییر schema فقط با Flyway
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      service: notification-service
+      environment: dev
+app:
+  mail:
+    from: "no-reply@shirin.com"
+  index:
+    maxAttempts: 5
