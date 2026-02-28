@@ -50,9 +50,6 @@ public class SendReceiptEmailUseCase {
     //validate -- try to send email (claim-first-approach) --- render -- send -- mark email
     public ProcessingResult  handle(OrderConfirmedEventV1 event)
     {
-        System.out.println("--------------------------------------------------");
-        System.out.println("event:" + event);
-        System.out.println("--------------------------------------------------");
 
         Objects.requireNonNull(event,"event must not be null");
         log.info("validation input data : orderId={} ",event.orderId());  // no PII
