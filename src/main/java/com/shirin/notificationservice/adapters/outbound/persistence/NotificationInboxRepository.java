@@ -17,6 +17,36 @@ public interface NotificationInboxRepository extends JpaRepository<NotificationI
 
     // First-time seen event: insert PROCESSING with attempts=1.
     // ON CONFLICT ensures concurrency safety: if another instance inserted first, we get 0.
+
+    //اگر insert عادی باشد و conflict نباشد → row درج می‌شود.
+    //
+    //اگر conflict روی event_id رخ دهد (یعنی همین کلید قبلاً وجود دارد) → هیچ کاری نکن و خطا نده.
+    //
+    //نتیجه این دستور در repository تو:
+    //
+    //بار اول: 1 row affected
+    //
+    //بار دوم: 0 rows affected (بدون exception)
+    //..................
+    //اگر event_id کلید اصلی باشد و دوبار insert کنیم چه می‌شود؟
+    //
+    //اگر ON CONFLICT DO NOTHING نداشته باشی:
+    //
+    //Postgres به خاطر PRIMARY KEY اجازه نمی‌دهد دو row با یک event_id داشته باشی.
+    //
+    //پس insert دوم باعث خطای SQL می‌شود:
+    //
+    //duplicate key value violates unique constraint ...
+    //
+    //در Java معمولاً تبدیل می‌شود به DataIntegrityViolationException یا exception مشابه.
+    //
+    //پس:
+    //
+    //PRIMARY KEY جلوی تکرار را می‌گیرد.
+    //
+    //ON CONFLICT DO NOTHING کاری می‌کند که به جای error، insert دوم “بی‌صدا” رد شود.
+
+    //برای سیستم event-driven، این خیلی مهم است چون duplicate delivery طبیعی است و نمی‌خواهی برنامه با exception دیتابیس spam شود.
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = """
       INSERT INTO notification_inbox(event_id, status, attempts, updated_at)

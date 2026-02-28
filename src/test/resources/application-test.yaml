@@ -1,0 +1,9 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+
+#    //(نیازی به datasource url نیست. Testcontainers در runtime inject می‌کند.)

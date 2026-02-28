@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table(name = "notification_inbox")  //inbox table
+@Table(name = "notification_inbox")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class NotificationInboxEntity {
@@ -33,13 +33,4 @@ public class NotificationInboxEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    // Convenience factory for initial insert (first time we see this event).
-//    public static NotificationInboxEntity newProcessing(UUID eventId) {
-//        NotificationInboxEntity e = new NotificationInboxEntity();
-//        e.eventId = Objects.requireNonNull(eventId,"eventId");
-//        e.status = InboxStatus.PROCESSING;
-//        e.attempts = 1;
-//        e.updatedAt = Instant.now();
-//        return e;
-//    }
 }
