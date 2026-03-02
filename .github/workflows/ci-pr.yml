@@ -8,10 +8,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
       - uses: actions/checkout@v4
 
-      - name: set up
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
