@@ -1,5 +1,5 @@
 #//این نسخه هنوز push نمی کند. فقط build می کند تا مطمئن شوی Dockerfile سالم است.
-name: CI (main) + Docker build
+name: CI (master) + Docker build
 
 on:
   push:
@@ -9,13 +9,18 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
           cache: maven
-      - run: mvn -B clean verify
+
+      - name: build
+        run: mvn -B clean verify
 
   docker-build:
     runs-on: ubuntu-latest
