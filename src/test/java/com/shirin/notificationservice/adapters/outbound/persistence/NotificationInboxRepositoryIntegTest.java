@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -15,8 +16,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 //هدف این تست://SQLهای native داخل NotificationInboxRepository واقعاً روی Postgres واقعی درست کار می‌کنند
 
@@ -25,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+//نرو H2 یا دیتابیس تستی جایگزین بیار، همین DataSource واقعی را استفاده کن.
+//دیتابیسی که از طریق Postgres Testcontainer ساخته شده و اطالاعات اون رو به spring از طریق DynamicPropertySource دادی رو استفاده کن
 //Spring Boot در تست‌ها یک رفتار پیش‌فرض دارد:
 //اگر دیتابیس واقعی نداده باشی، می‌رود یک دیتابیس in-memory مثل H2 می‌آورد.
 //اما ما نمی‌خواهیم H2.
@@ -55,6 +57,8 @@ public class NotificationInboxRepositoryIntegTest {
 
     @Autowired
     NotificationInboxRepository inboxRepository;
+    @Autowired
+    JdbcTemplate jdbc;
 
     @Test
     void should_insert_only_once() {
@@ -94,5 +98,16 @@ public class NotificationInboxRepositoryIntegTest {
         Optional<String> status = inboxRepository.findStatusRaw(id);
         assertTrue(status.isPresent());
         assertEquals("DONE", status.get());
+    }
+
+
+    @Test
+    void flyway_should_have_run() {
+        Integer count = jdbc.queryForObject(
+                "select count(*) from flyway_schema_history where success = true",
+                Integer.class
+        );
+        assertNotNull(count);
+        assertTrue(count > 0);
     }
 }

@@ -1,0 +1,22 @@
+#هر PR باید پاس شود تا اجازه merge بگیرد (با branch protection)
+name: CI (PR)
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+      - uses: actions/checkout@v4
+
+      - name: set up
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Build and verify
+        run: mvn -B clean verify
