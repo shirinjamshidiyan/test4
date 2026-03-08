@@ -1,6 +1,5 @@
 package com.shirin.notificationservice;
 
-
 import com.shirin.notificationservice.adapters.inbound.kafka.OrderConfirmedKafkaListener;
 import com.shirin.notificationservice.adapters.outbound.email.SmtpEmailSenderAdapter;
 import com.shirin.notificationservice.adapters.outbound.persistence.JpaInboxIdempotencyAdapter;
@@ -22,50 +21,42 @@ import org.thymeleaf.TemplateEngine;
 @Configuration
 public class WiringConfig {
 
-    @Bean
-    public InboxIdempotencyPort inboxIdempotency(NotificationInboxRepository repo) {
-        return new JpaInboxIdempotencyAdapter(repo);
-    }
+  @Bean
+  public InboxIdempotencyPort inboxIdempotency(NotificationInboxRepository repo) {
+    return new JpaInboxIdempotencyAdapter(repo);
+  }
 
-    @Bean
-    public EmailSenderPort emailSender(JavaMailSender sender, @Value("${app.mail.from}") String from) {
-        return new SmtpEmailSenderAdapter(sender, from);
-    }
+  @Bean
+  public EmailSenderPort emailSender(
+      JavaMailSender sender, @Value("${app.mail.from}") String from) {
+    return new SmtpEmailSenderAdapter(sender, from);
+  }
 
-    @Bean
-    public ReceiptRendererPort renderer(TemplateEngine engine) {
-        return new ThymeleafReceiptRenderer(engine);
-    }
+  @Bean
+  public ReceiptRendererPort renderer(TemplateEngine engine) {
+    return new ThymeleafReceiptRenderer(engine);
+  }
 
-    @Bean
-    public SendReceiptEmailUseCase sendReceiptEmailUseCase(
-            EmailSenderPort emailSender,
-            InboxIdempotencyPort inboxIdempotency,
-            ReceiptRendererPort renderer,
-            Validator validator,
-            NotificationMetrics metrics,
-            @Value("${app.index.maxAttempts}") int maxAttempts
-    ) {
-        return new SendReceiptEmailUseCase(
-                emailSender,
-                inboxIdempotency,
-                renderer,
-                validator,
-                metrics,
-                maxAttempts
-        );
-    }
+  @Bean
+  public SendReceiptEmailUseCase sendReceiptEmailUseCase(
+      EmailSenderPort emailSender,
+      InboxIdempotencyPort inboxIdempotency,
+      ReceiptRendererPort renderer,
+      Validator validator,
+      NotificationMetrics metrics,
+      @Value("${app.index.maxAttempts}") int maxAttempts) {
+    return new SendReceiptEmailUseCase(
+        emailSender, inboxIdempotency, renderer, validator, metrics, maxAttempts);
+  }
 
-    @Bean
-    public OrderConfirmedKafkaListener orderConfirmedKafkaListener(
-            SendReceiptEmailUseCase useCase,
-            NotificationMetrics metrics
-    ) {
-        return new OrderConfirmedKafkaListener(useCase, metrics);
-    }
+  @Bean
+  public OrderConfirmedKafkaListener orderConfirmedKafkaListener(
+      SendReceiptEmailUseCase useCase, NotificationMetrics metrics) {
+    return new OrderConfirmedKafkaListener(useCase, metrics);
+  }
 
-    @Bean
-    public NotificationMetrics notificationMetrics(MeterRegistry registry) {
-        return new NotificationMetrics(registry);
-    }
+  @Bean
+  public NotificationMetrics notificationMetrics(MeterRegistry registry) {
+    return new NotificationMetrics(registry);
+  }
 }
