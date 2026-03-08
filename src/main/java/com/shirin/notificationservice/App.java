@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class App {
   public static void main(String[] args) {
-    // adding a hook for pre-commit
+    // adding a hook for pre-commit--number2
     SpringApplication.run(App.class, args);
   }
 }
