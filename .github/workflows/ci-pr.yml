@@ -52,9 +52,19 @@ jobs:
   secret-scan:
     name: Secret Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+
     steps:
      - name: Checkout repository
        uses: actions/checkout@v4
 
      - name: Run Gitleaks
        uses: gitleaks/gitleaks-action@v2
+       env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+#در GitHub Actions این توکن به صورت خودکار توسط GitHub برای هر workflow run ساخته می‌شود. بنابراین:
+#  در Secrets UI چیزی اضافه نمی‌کنی
+#  فقط در workflow از آن استفاده می‌کنی
