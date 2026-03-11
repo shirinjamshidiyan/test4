@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+        <Class name="com.shirin.notificationservice.adapters.outbound.persistence.JpaInboxIdempotencyAdapter"/>
+    </Match>
+
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+        <Class name="com.shirin.notificationservice.infrastructure.observability.NotificationMetrics"/>
+    </Match>
+
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+        <Class name="com.shirin.notificationservice.adapters.inbound.kafka.EnvelopeDeadLetterRecoverer"/>
+    </Match>
+
+    <Match>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+        <Class name="com.shirin.notificationservice.core.application.usecase.SendReceiptEmailUseCase"/>
+    </Match>
+
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP"/>
+        <Class name="com.shirin.notificationservice.integration.events.OrderConfirmedEventV1"/>
+    </Match>
+</FindBugsFilter>

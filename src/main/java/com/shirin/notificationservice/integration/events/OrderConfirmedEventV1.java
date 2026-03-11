@@ -19,6 +19,9 @@ public record OrderConfirmedEventV1(
     @NotEmpty List<@Valid OrderItem> items,
     @NotBlank String billingAddress,
     @NotBlank String shippingAddress) {
+  public OrderConfirmedEventV1 {
+    items = items == null ? null : List.copyOf(items);
+  }
 
   public record OrderItem(
       @NotBlank String sku,

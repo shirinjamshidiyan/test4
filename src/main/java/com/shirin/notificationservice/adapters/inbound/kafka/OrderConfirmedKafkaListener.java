@@ -108,6 +108,13 @@ public class OrderConfirmedKafkaListener {
         log.warn("OrderConfirmedEventV1 received event=null");
       }
 
+      // جدید اضافه شد برای باگ spotbugs
+      if (event == null) {
+        sample.stop(metrics.eventProcessingTimer("invalid"));
+        log.warn("Received null event");
+        throw new SendReceiptEmailUseCase.InvalidEventException("Event must not be null");
+      }
+
       // Call the application use case (orchestration).
       ProcessingResult result = sendEmailUseCase.handle(event);
 
