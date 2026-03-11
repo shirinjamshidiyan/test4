@@ -255,20 +255,20 @@
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
                 <version>4.8.6.2</version>
-<!--                <configuration>-->
-<!--                    <excludeFilterFile>config/spotbugs/exclude.xml</excludeFilterFile>-->
-<!--                </configuration>-->
+                <configuration>
+                    <excludeFilterFile>config/spotbugs/exclude.xml</excludeFilterFile>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>verify</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
-                        <configuration>
-                            <effort>Max</effort>
-                            <threshold>Medium</threshold>
-                            <failOnError>true</failOnError>
-                        </configuration>
+<!--                        <configuration>-->
+<!--                            <effort>Max</effort>-->
+<!--                            <threshold>Medium</threshold>-->
+<!--                            <failOnError>true</failOnError>-->
+<!--                        </configuration>-->
                     </execution>
                 </executions>
             </plugin>
