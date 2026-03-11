@@ -1,6 +1,7 @@
 spring:
   datasource:
-    url: jdbc:postgresql://prod-db:5432/emaildb
+#    url: jdbc:postgresql://prod-db:5432/emaildb
+    url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 

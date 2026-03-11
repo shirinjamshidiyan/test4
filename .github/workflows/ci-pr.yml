@@ -1,17 +1,72 @@
-name: CI (PR)
+name: CI-PR
+
 on:
   pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
 jobs:
-  test:
+  verify:
+    name: Build, Test, Quality Gates
     runs-on: ubuntu-latest
+    env:
+      NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Setup Java
+
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
           cache: maven
-      - name: Build and verify
+
+      - name: Verify project without dependency scan
+#        run: mvn -B clean verify -Psecurity-scan
         run: mvn -B clean verify
+
+      - name: Upload Surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/**
+
+      - name: Upload Failsafe reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failsafe-reports
+          path: target/failsafe-reports/**
+
+      - name: Upload JaCoCo report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/**
+
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+     - name: Checkout repository
+       uses: actions/checkout@v4
+       with:
+         fetch-depth: 0
+
+     - name: Run Gitleaks
+       uses: gitleaks/gitleaks-action@v2
+       env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+#در GitHub Actions این توکن به صورت خودکار توسط GitHub برای هر workflow run ساخته می‌شود. بنابراین:
+#  در Secrets UI چیزی اضافه نمی‌کنی
+#  فقط در workflow از آن استفاده می‌کنی

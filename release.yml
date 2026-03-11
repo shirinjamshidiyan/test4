@@ -3,6 +3,7 @@ name: Release
 
 on:
   push:
+    branches: master
     tags:
       - "v*.*.*"
 
@@ -15,34 +16,47 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: 17
           cache: maven
 
       - name: Build (jar)
         run: mvn -B clean package
 
-      - name: Upload jar artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: notification-service-jar
-          path: target/*.jar
+#      - name: Upload jar artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: notification-service-jar
+#          path: target/*.jar
 
   publish-image:
     runs-on: ubuntu-latest
     needs: [ build ]
+    permissions:
+      contents: read
+      packages: write
     environment: prod
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to registry
         uses: docker/login-action@v3
         with:
+          registry: docker.io
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
+
+#      - name: Download jar artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: notification-qqqservice-jar
+#          path: target/*.jar
 
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: your-registry/notification-service:${{ github.ref_name }}
+          tags: docker.io/${{ github.repository_owner }}/notification-service:${{ github.ref_name }}
