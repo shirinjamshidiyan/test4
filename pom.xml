@@ -206,12 +206,12 @@
                     </execution>
 
                     <!-- اگر خواستی quality gate واقعی coverage هم enforce شود این بخش را نگه دار -->
-                    <execution>
-                        <id>check</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
+<!--                    <execution>-->
+<!--                        <id>check</id>-->
+<!--                        <phase>verify</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>check</goal>-->
+<!--                        </goals>-->
 <!--                        <configuration>-->
 <!--                            <rules>-->
 <!--                                <rule>-->
@@ -226,7 +226,7 @@
 <!--                                </rule>-->
 <!--                            </rules>-->
 <!--                        </configuration>-->
-                    </execution>
+<!--                    </execution>-->
                 </executions>
             </plugin>
 
