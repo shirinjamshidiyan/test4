@@ -1,14 +1,13 @@
 spring:
   datasource:
-#    url: jdbc:postgresql://prod-db:5432/emaildb
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
   mail:
-    host: smtp.sendgrid.net
-    port: 587
-    username: apikey
+    host:  ${SMTP_HOST} #   smtp.sendgrid.net
+    port:  ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:apikey}
     password: ${SMTP_API_KEY}
     properties:
       mail:
@@ -19,6 +18,6 @@ spring:
 
 app:
   kafka:
-    bootstrap-servers: kafka:9092
-    group-id: notification-service
-    topic: order-confirmed.v1
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    group-id: ${KAFKA_GROUP_ID:notification-service}
+    topic: ${KAFKA_TOPIC:order-confirmed.v1}

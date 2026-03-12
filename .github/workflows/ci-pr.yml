@@ -11,8 +11,8 @@ jobs:
   verify:
     name: Build, Test, Quality Gates
     runs-on: ubuntu-latest
-    env:
-      NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+#    env:
+#      NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
