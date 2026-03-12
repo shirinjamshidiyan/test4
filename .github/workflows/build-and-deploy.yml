@@ -56,14 +56,27 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Scan image with Trivy
-        uses: aquasecurity/trivy-action@0.33.1
-        with:
-          image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
-          format: table
-          exit-code: '1'
-          severity: 'HIGH,CRITICAL'
-          version: v0.68.2
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.69.3
+          trivy --version
+
+      - name: Scan image with Trivy CLI
+        run: |
+          trivy image \
+            --severity HIGH,CRITICAL \
+            --exit-code 1 \
+            --format table \
+            $IMAGE_NAME:${{ github.sha }}
+
+#      - name: Scan image with Trivy
+#        uses: aquasecurity/trivy-action@0.33.1
+#        with:
+#          image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+#          format: table
+#          exit-code: '1'
+#          severity: 'HIGH,CRITICAL'
+#          version: v0.68.2
 
       - name: Tag image as main
         run: docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_NAME:main
