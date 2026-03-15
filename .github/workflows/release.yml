@@ -55,9 +55,14 @@ jobs:
       - name: Check SBOM files exist
         shell: bash
         run: |
-          ls -la target || true
-          test -f target/bom.xml
-          test -f target/bom.json
+          echo "Inspecting generated SBOM files..."
+          find target -type f | sort
+          test -f target/classes/META-INF/sbom/application.cdx.json
+#        run: |
+#          ls -la target || true
+#          test -f target/bom.xml
+#          test -f target/bom.json
+
 
 #چون اگر plugin درست اجرا نشده باشد، نمی‌خواهی pipeline ادامه پیدا کند و آخر کار تازه بفهمی SBOM نداشتی#
       #test -f -> اگر فایل وجود نداشته باشد، command fail می‌شود و job متوقف می‌شود
@@ -127,8 +132,7 @@ jobs:
         shell: bash
         run: |
           gh release upload "${{ steps.vars.outputs.tag }}" \
-            "target/bom.xml#CycloneDX SBOM XML" \
-            "target/bom.json#CycloneDX SBOM JSON" \
+            "target/classes/META-INF/sbom/application.cdx.json#CycloneDX SBOM JSON" \
             --clobber
 
 #چون release فقط image نیست.
