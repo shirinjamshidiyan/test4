@@ -1,30 +1,40 @@
-version: "3.9"
+#Healthcheck یک مکانیزم داخل Docker است که به Docker اجازه می‌دهد بفهمد:
+#  آیا سرویس واقعاً آماده کار است یا فقط process آن start شده است؟
+#  نتیجه healthcheck
+#Docker برای هر container سه حالت دارد:
+#  starting
+#  healthy
+#  unhealthy
 
 services:
+
   postgres:
     image: postgres:16
-    container_name: notification-postgres
+    restart: unless-stopped #اگر کانتینر crash کرد، دوباره بالا بیاید
     environment:
-      POSTGRES_DB: notificationdb
-      POSTGRES_USER: email
-      POSTGRES_PASSWORD: email
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
-    container_name: notification-zookeeper
+    restart: unless-stopped
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
 
   kafka:
     image: confluentinc/cp-kafka:7.6.1
-    container_name: notification-kafka
+    restart: unless-stopped
     depends_on:
       - zookeeper
     ports:
@@ -32,55 +42,85 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092  #قیه containerها داخل شبکه compose، Kafka را با hostname زیر می‌بینند
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+#    healthcheck:
+#      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list >/dev/null 2>&1 || exit 1" ]
+#      interval: 15s
+#      timeout: 10s
+#      retries: 10
 
+#  kafka:
+#    image: bitnami/kafka:3.7
+#    restart: unless-stopped
+#    environment:
+#      KAFKA_CFG_NODE_ID: 0
+#      KAFKA_CFG_PROCESS_ROLES: controller,broker
+#      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+#      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+#      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+#      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+#      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
+#      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+#      ALLOW_PLAINTEXT_LISTENER: "yes"
 
-  mailhog:
+  mailhog:   #SMTP mock server است
     image: mailhog/mailhog:latest
-    container_name: notification-mailhog
-    ports:
-      - "1025:1025"
-      - "8025:8025"
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    environment:
-      PGADMIN_DEFAULT_EMAIL: vidajob2882@gmial.com
-      PGADMIN_DEFAULT_PASSWORD: 123321
-    ports:
-      - "5050:80"
-    depends_on:
-      - postgres
     restart: unless-stopped
+    ports:
+      - "8025:8025" #یعنی UI وب MailHog از بیرون هم روی پورت 8025 در دسترس باشد
+
+#  pgadmin:
+#    image: dpage/pgadmin4:latest
+#    environment:
+#      PGADMIN_DEFAULT_EMAIL: vidajob2882@gmial.com
+#      PGADMIN_DEFAULT_PASSWORD: 123321
+#    ports:
+#      - "5050:80"
+#    depends_on:
+#      - postgres
+#    restart: unless-stopped
 
   notification-service:
-    image: shirinjam/notification-service:main
-    container_name: notification-service
+    image: shirinjam/notification-service:${IMAGE_TAG}
+    restart: unless-stopped
     depends_on:
-      - postgres
-      - kafka
-      - mailhog
+      postgres:
+       condition: service_healthy
+      kafka:
+        condition: service_started
+      mailhog:
+        condition: service_started
     ports:
-      - "8080:8080"
+      - "8082:8082"
     environment:
-      SPRING_PROFILES_ACTIVE: staging
-      DB_URL: jdbc:postgresql://postgres:5432/notificationdb
-      DB_USERNAME: email
-      DB_PASSWORD: email
-      SMTP_HOST: mailhog
-      SMTP_PORT: 1025
-      SMTP_USERNAME: ""
-      SMTP_API_KEY: ""
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KAFKA_GROUP_ID: notification-service
-      KAFKA_TOPIC: order-confirmed.v1
-      APP_INDEX_MAXATTEMPTS: 5
+      SPRING_PROFILES_ACTIVE:  ${SPRING_PROFILE}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD:  ${POSTGRES_PASSWORD}
+
+      SPRING_MAIL_HOST: mailhog
+      SPRING_MAIL_PORT: 1025
+      SPRING_MAIL_USERNAME: ""
+      SPRING_MAIL_PASSWORD: ""
+
+      APP_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      APP_KAFKA_GROUP_ID: ${APP_KAFKA_GROUP_ID}
+      APP_KAFKA_TOPIC: ${APP_KAFKA_TOPIC}
+      APP_MAIL_FROM:  ${APP_MAIL_FROM}
+      APP_INDEX_MAXATTEMPTS: ${APP_INDEX_MAXATTEMPTS}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep UP || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
 
 volumes:
   postgres_data:
 
-#//docker compose -f docker-compose.staging.yml up -d
+#//docker compose --env-file .env.staging -f docker-compose.staging.yml pull
+#docker compose --env-file .env.staging -f docker-compose.staging.yml up -d
 

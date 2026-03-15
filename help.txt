@@ -1,0 +1,19 @@
+in ReadMe
+
+Architecture
+Kafka Consumer Service
+
+Tech Stack
+Spring Boot
+Kafka
+Postgres
+Docker
+GitHub Actions
+
+Run locally
+docker compose -f docker-compose.dev.yml up
+
+CI/CD
+PR → tests
+main → build image
+tag → release

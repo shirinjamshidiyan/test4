@@ -16,10 +16,10 @@ management:
   endpoint:
     health:
       show-details: always
-  metrics:
-    tags:
-      service: notification-service
-      environment: dev
+#  metrics:
+#    tags:
+#      service: notification-service
+#      environment: dev
 app:
   mail:
     from: "no-reply@shirin.com"

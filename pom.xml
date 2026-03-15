@@ -280,6 +280,8 @@
                 </executions>
             </plugin>
 
+<!--            تولید SBOM در Maven-->
+<!--            CycloneDX Maven plugin برای تولید SBOM وابستگی‌های مستقیم و transitve استفاده می‌شود و makeAggregateBom برای aggregate BOM به کار می‌رود-->
             <plugin>
                 <groupId>org.cyclonedx</groupId>
                 <artifactId>cyclonedx-maven-plugin</artifactId>

@@ -1,5 +1,5 @@
 name: Main - Build, Scan, Push, Deploy Staging
-#  docker push shirinjam/email-service:tagname
+
 on:
   push:
     branches:
@@ -53,9 +53,9 @@ jobs:
           push: false
           load: true
           tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
-          no-cache: true
-#          cache-from: type=gha
-#          cache-to: type=gha,mode=max
+#         no-cache: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Install Trivy
         run: |
@@ -99,7 +99,16 @@ jobs:
     steps:
       - name: Deploy to staging
         run: |
-          echo "Deploying image $IMAGE_NAME:${{ github.sha }} to staging"
-#           مثال:
-#           kubectl set image deployment/notification-service \
-#           notification-service=$IMAGE_NAME:${{ github.sha }}
+          echo "Deploying image $IMAGE_NAME:${{ github.sha }} to staging
+#
+#      - name: Deploy to staging via SSH
+#        uses: appleboy/ssh-action@v1.0.3
+#        with:
+#          host: ${{ secrets.STAGING_HOST }}
+#          username: ${{ secrets.STAGING_USER }}
+#          key: ${{ secrets.STAGING_SSH_KEY }}
+#          script: |
+#            cd /opt/notification-service
+#            export IMAGE_TAG=${{ github.sha }}
+#            docker compose --env-file .env.staging -f docker-compose.staging.yml pull
+#            docker compose --env-file .env.staging -f docker-compose.staging.yml up -d

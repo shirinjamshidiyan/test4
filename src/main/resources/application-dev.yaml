@@ -1,4 +1,4 @@
-
+# with docker-compose.dev.yaml
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/emaildb
